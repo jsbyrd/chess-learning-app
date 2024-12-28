@@ -35,7 +35,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="min-h-screen bg-background">
+          <div className="min-h-screen bg-background flex flex-col gap-8">
             <Header />
             {children}
           </div>
