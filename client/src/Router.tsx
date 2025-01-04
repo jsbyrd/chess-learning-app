@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router";
 import Layout from "./Layout";
 import Home from "./pages/Home/Home";
 
-function App() {
+function Router() {
   return (
     <Routes>
       <Route element={<Layout />}>
@@ -12,4 +12,4 @@ function App() {
   );
 }
 
-export default App;
+export default Router;
