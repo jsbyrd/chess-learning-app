@@ -61,7 +61,7 @@ const MakeMoveInstructions = (props: MakeMoveInstructionsProps) => {
         </p>
       </div>
 
-      <div className="flex justify-between items-center gap-10">
+      <div className="flex justify-center items-center flex-wrap gap-10">
         <div className="flex flex-col gap-8">
           <h2 className="text-xl font-bold">Options</h2>
           <div className="flex flex-col justify-center items-start gap-4">
@@ -102,7 +102,7 @@ const MakeMoveInstructions = (props: MakeMoveInstructionsProps) => {
             </Button>
           </div>
         </div>
-        <ChessboardWrapper>
+        <ChessboardWrapper className="pb-10">
           <Chessboard
             showBoardNotation={showCoordinates}
             boardOrientation={

@@ -20,6 +20,8 @@ import {
 import { TouchBackend } from "react-dnd-touch-backend";
 import { isMobile } from "@/lib/is-mobile";
 import { ChessColor } from "@/lib/common-types";
+import ChessboardWrapper from "@/components/ChessboardWrapper";
+import { chessboardWidth } from "@/lib/common-values";
 // import { createMmAnalytics } from "@/services/mmAnalyticsService";
 // import { useUser } from "@/components/UserProvider";
 
@@ -184,10 +186,11 @@ const MakeMoveGame = (props: MakeMoveGameProps) => {
   return (
     <div className="flex flex-col items-center container mx-auto px-4 py-8 max-w-3xl">
       <h1 className="text-3xl font-bold text-center mb-2">
-        Make That Move: {move}
+        {/* Make That Move: {move} */}
+        Make That Move
       </h1>
 
-      <div className="flex flex-wrap gap-4 justify-evenly align-center container mx-auto px-4 py-2 max-w-3xl">
+      {/* <div className="flex flex-wrap gap-4 justify-evenly align-center container mx-auto px-4 py-2 max-w-3xl">
         <div className="text-2xl">
           Score: {score} / {total}
         </div>
@@ -195,9 +198,24 @@ const MakeMoveGame = (props: MakeMoveGameProps) => {
         {!isPractice && (
           <div className="text-2xl">Time Left: {Math.ceil(time)}</div>
         )}
+      </div> */}
+
+      <div
+        className={`${chessboardWidth} flex justify-between items-center py-2`}
+      >
+        <p className="w-24 text-center">Score: {score}</p>
+        <p className="w-24 text-center">
+          {orientation.charAt(0)}: <span className="font-bold">{move}</span>
+        </p>
+        <p className="w-24 text-center">
+          {Math.floor(Math.ceil(time) / 60) < 10 ? "0" : ""}
+          {Math.floor(Math.ceil(time) / 60)}:
+          {Math.ceil(time) % 60 < 10 ? "0" : ""}
+          {Math.ceil(time) % 60}
+        </p>
       </div>
 
-      <div className="mb-6 w-full sm:w-[80%] lg:w-[70%]">
+      <ChessboardWrapper>
         <Chessboard
           id="NotationTrainer"
           position={position ?? DEFAULT_POSITION}
@@ -208,8 +226,10 @@ const MakeMoveGame = (props: MakeMoveGameProps) => {
           customArrows={showCustomArrows ? customArrows : ([] as Arrow[])}
           customDndBackend={isMobile() ? TouchBackend : undefined}
         />
-        {!isPractice && <Progress value={(time * 100) / MAX_TIME} />}
-      </div>
+      </ChessboardWrapper>
+      {!isPractice && (
+        <Progress value={(time * 100) / MAX_TIME} className={chessboardWidth} />
+      )}
 
       <div className="flex justify-center space-x-4 my-6">
         <Button
