@@ -5,18 +5,18 @@ export const practiceNavComponent: {
 }[] = [
   {
     title: "Openings",
-    href: "/practice/openings",
+    href: "/study/openings",
     description: "Learn and practice the most common and effective openings.",
   },
   {
     title: "Middle Game",
-    href: "/practice/middlegame",
+    href: "/study/middlegame",
     description:
       "Practice middle games with a combination of tactical and positional puzzles.",
   },
   {
     title: "End Game",
-    href: "/practice/endgame",
+    href: "/study/endgame",
     description: "Get better at closing out games with the help of table base.",
   },
 ];
@@ -47,5 +47,28 @@ export const gameNavComponent: {
     title: "AI vs AI",
     href: "/game/watch-ai",
     description: "Want to watch the world burn as two chess bots wage war?",
+  },
+];
+
+export const coordinatesNavComponent: {
+  title: string;
+  href: string;
+  description: string;
+}[] = [
+  {
+    title: "Make Move",
+    href: "/coordinates/make-move",
+    description: "Make the correct move based on the given notation!",
+  },
+  {
+    title: "Name Notation",
+    href: "/coordinates/name-notation",
+    description: "Name the correct notation based on the given move!",
+  },
+  {
+    title: "Search Squares",
+    href: "/coordinates/search-squares",
+    description:
+      "Find the square the corresponds to the given coordinates as fast as possible!",
   },
 ];
