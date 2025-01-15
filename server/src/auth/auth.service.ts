@@ -1,72 +1,57 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 import { AuthDto } from './dto';
-import * as argon from 'argon2';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { UserService } from 'src/user/user.service';
+import { Response } from 'express';
+import { User } from '@prisma/client';
 
-@Injectable({})
+@Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
-    private jwt: JwtService,
+    private jwtService: JwtService,
     private configService: ConfigService,
+    private userService: UserService,
   ) {}
 
-  async register(dto: AuthDto) {
-    const hash = await argon.hash(dto.password);
-
-    try {
-      const user = await this.prisma.user.create({
-        data: {
-          username: dto.username,
-          passwordHash: hash,
-          ...(dto.role && { role: dto.role }),
-        },
-      });
-
-      return this.signToken(user.id, user.username);
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new ForbiddenException('Credentials Taken');
-        }
-      }
-      throw error;
-    }
+  async register(dto: AuthDto, response: Response) {
+    const newUser = await this.userService.createUser(dto);
+    await this.handleTokensAndCookies(newUser, response);
   }
 
-  async login(dto: AuthDto) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        username: dto.username,
-      },
-    });
-
-    if (!user) throw new ForbiddenException('Credentials Incorrect');
-
-    const passwordMatches = await argon.verify(user.passwordHash, dto.password);
-
-    if (!passwordMatches) throw new ForbiddenException('Credentials Incorrect');
-
-    return this.signToken(user.id, user.username);
+  async login(dto: AuthDto, response: Response) {
+    const user = await this.userService.getUser(dto);
+    await this.handleTokensAndCookies(user, response);
   }
 
-  async signToken(
-    userId: number,
-    username: string,
-  ): Promise<{ access_token: string }> {
-    const payload = {
-      sub: userId,
-      username,
+  async handleTokensAndCookies(user: User, response: Response) {
+    const tokenPayload = {
+      sub: user.id,
+      email: user.email,
     };
 
-    const token = await this.jwt.signAsync(payload, {
-      expiresIn: '15m',
-      secret: this.configService.get('JWT_SECRET'),
+    const accessToken = this.jwtService.sign(tokenPayload, {
+      expiresIn: '15m', // TODO: Remove magic string
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
     });
 
-    return { access_token: token };
+    const refreshToken = this.jwtService.sign(tokenPayload, {
+      expiresIn: '1d', // TODO: Remove magic string
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+    });
+
+    await this.userService.updateUser(user.id, { refreshToken });
+
+    response.cookie('Authentication', accessToken, {
+      httpOnly: true,
+      secure: this.configService.get('NODE_ENV') === 'production',
+      expires: new Date(Date.now() + 15 * 60 * 1000), // TODO: Remove magic numbers (15 minutes long in ms)
+    });
+
+    response.cookie('Refresh', refreshToken, {
+      httpOnly: true,
+      secure: this.configService.get('NODE_ENV') === 'production',
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // TODO: Remove magic numbers (a day long in ms)
+    });
   }
 }
