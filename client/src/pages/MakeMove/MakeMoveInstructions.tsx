@@ -49,16 +49,21 @@ const MakeMoveInstructions = (props: MakeMoveInstructionsProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-10 items-center container mx-auto px-4 py-8 max-w-3xl">
-      <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-10 items-center mx-auto container px-12 py-8 max-w-5xl">
+      <div className="flex flex-col gap-6">
         <h1 className="text-3xl font-bold text-center">Make That Move</h1>
-        <p className="text-sm">
-          Instructions: You will be given a random board position and a move to
-          make in algebraic notation. Your goal is to make as many correct moves
-          as possible in 60 seconds! Do note that the move is randomly selected
-          from all possible moves in the position and may or may not be
-          nonsensical.
-        </p>
+        <div className="flex flex-col gap-3">
+          <p className="text-md">
+            <span className="font-bold">Instructions:</span> You will be given a
+            random board position and a move to make in algebraic notation. Your
+            goal is to make as many correct moves as possible in 60 seconds!
+          </p>
+          <p className="text-sm">
+            *Note: Moves are randomly selected from all possible moves from
+            pseudo-random positions, and therefore may or may not be utter
+            nonsense.
+          </p>
+        </div>
       </div>
 
       <div className="flex justify-center items-center flex-wrap gap-10">
@@ -102,7 +107,7 @@ const MakeMoveInstructions = (props: MakeMoveInstructionsProps) => {
             </Button>
           </div>
         </div>
-        <ChessboardWrapper className="pb-10">
+        <ChessboardWrapper className="pb-10 md:pb-0">
           <Chessboard
             showBoardNotation={showCoordinates}
             boardOrientation={

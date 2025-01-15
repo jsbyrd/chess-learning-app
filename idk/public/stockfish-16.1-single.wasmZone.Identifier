@@ -1,0 +1,4 @@
+[ZoneTransfer]
+ZoneId=3
+ReferrerUrl=https://github.com/nmrugg/stockfish.js/blob/master/src/stockfish-16.1-single.wasm
+HostUrl=https://raw.githubusercontent.com/nmrugg/stockfish.js/refs/heads/master/src/stockfish-16.1-single.wasm
