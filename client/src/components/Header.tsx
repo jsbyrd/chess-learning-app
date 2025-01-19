@@ -3,8 +3,31 @@ import { NavLink } from "react-router";
 import { ModeToggle } from "./ModeToggle";
 import Navigation from "./navigation/Navigation";
 import MobileNavigation from "./navigation/MobileNavigation";
+import { useUser } from "./UserProvider/use-user-hook";
+import { useMemo } from "react";
+import DropMenu from "./DropMenu";
 
 const Header = () => {
+  const { email, isLoggedIn } = useUser();
+
+  const rightSideHeader = useMemo(() => {
+    return isLoggedIn ? (
+      <DropMenu />
+    ) : (
+      <>
+        <NavLink to="/login" className={buttonVariants({ variant: "ghost" })}>
+          Login
+        </NavLink>
+        <NavLink
+          to="/register"
+          className={buttonVariants({ variant: "default" })}
+        >
+          Sign Up
+        </NavLink>
+      </>
+    );
+  }, [isLoggedIn, email]);
+
   return (
     <header className="sticky flex justify-between md:justify-around h-14 top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* Logo */}
@@ -20,15 +43,16 @@ const Header = () => {
       {/* Right side actions */}
       <div className="flex items-center gap-4 px-4">
         <ModeToggle />
-        <NavLink to="/login" className={buttonVariants({ variant: "ghost" })}>
+        {/* <NavLink to="/login" className={buttonVariants({ variant: "ghost" })}>
           Login
         </NavLink>
         <NavLink
-          to="/signup"
+          to="/register"
           className={buttonVariants({ variant: "default" })}
         >
           Sign Up
-        </NavLink>
+        </NavLink> */}
+        {rightSideHeader}
       </div>
     </header>
   );

@@ -5,6 +5,8 @@ import {
   SheetContent,
   SheetTrigger,
   SheetClose,
+  SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import {
   Accordion,
@@ -35,7 +37,12 @@ const MobileNavigation = () => {
           <div className="flex flex-col space-y-4 mt-8">
             <SheetClose asChild>
               <NavLink to="/" className="flex items-center space-x-2 mb-8">
-                <span className="font-bold text-xl">Practice Chess</span>
+                <SheetTitle>
+                  <span className="font-bold text-xl">Practice Chess</span>
+                </SheetTitle>
+                <SheetDescription className="hidden">
+                  Main Navigation
+                </SheetDescription>
               </NavLink>
             </SheetClose>
             <Accordion type="single" collapsible>
