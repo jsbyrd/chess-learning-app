@@ -1,7 +1,8 @@
-import { Body, Controller, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
-import { Response } from 'express';
+import { Request, Response } from 'express';
+import { JwtRefreshGuard } from './guard/jwt-refresh.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -23,11 +24,17 @@ export class AuthController {
     await this.authService.login(dto, response);
   }
 
+  @Post('logout')
+  async logout(@Res({ passthrough: true }) response: Response) {
+    await this.authService.logout(response);
+  }
+
   @Post('refresh')
+  @UseGuards(JwtRefreshGuard)
   async refresh(
-    @Body() dto: AuthDto,
-    @Res({ passthrough: true }) response: Response,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    await this.authService.login(dto, response);
+    await this.authService.refresh(req, res);
   }
 }

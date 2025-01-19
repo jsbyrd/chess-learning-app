@@ -22,6 +22,7 @@ export class UserService {
       });
 
       delete user.passwordHash;
+      delete user.refreshToken;
 
       return user;
     } catch (error) {
@@ -48,6 +49,7 @@ export class UserService {
     if (!passwordMatches) throw new ForbiddenException('Credentials Incorrect');
 
     delete user.passwordHash;
+    delete user.refreshToken;
 
     return user;
   }
@@ -62,7 +64,19 @@ export class UserService {
     if (!user) throw new ForbiddenException('Credentials Incorrect');
 
     delete user.passwordHash;
+    delete user.refreshToken;
 
+    return user;
+  }
+
+  async getUserWithRefreshToken(id: number): Promise<User> {
+    const user: User = await this.prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (!user) throw new ForbiddenException('Credentials Incorrect');
+    delete user.passwordHash;
     return user;
   }
 
