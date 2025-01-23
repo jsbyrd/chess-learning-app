@@ -2,12 +2,8 @@ import { useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { useFen } from "@/components/FenProvider";
-import { Chess, DEFAULT_POSITION, Piece, Square } from "chess.js";
-import {
-  Arrow,
-  BoardOrientation,
-} from "react-chessboard/dist/chessboard/types";
+import { DEFAULT_POSITION, Square } from "chess.js";
+import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,10 +19,11 @@ import { ChessColor } from "@/lib/common-types";
 import ChessboardWrapper from "@/components/ChessboardWrapper";
 import { chessboardWidth } from "@/lib/common-values";
 import getRandomSquare from "@/lib/get-random-square";
+import getRandomColor from "@/lib/get-random-color";
 // import { createMmAnalytics } from "@/services/mmAnalyticsService";
 // import { useUser } from "@/components/UserProvider";
 
-const MAX_TIME = 6000;
+const MAX_TIME = 60;
 
 export interface SearchSquareGameProps {
   setIsPlaying: (isPlaying: boolean) => void;
@@ -40,13 +37,11 @@ const SearchSquareGame = (props: SearchSquareGameProps) => {
   const [time, setTime] = useState(MAX_TIME);
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
-  const [move, setMove] = useState("");
-  const [orientation, setOrientation] = useState<BoardOrientation>("white");
+  const [orientation, setOrientation] = useState<BoardOrientation>(
+    selectedColor === "random" ? getRandomColor() : selectedColor
+  );
   const [showPopup, setShowPopup] = useState(false);
   const [isActiveGame, setIsActiveGame] = useState(true);
-  const [customArrows, setCustomArrows] = useState<Arrow[] | undefined>(
-    undefined
-  );
   const [currentSquare, setCurrentSquare] = useState<string | undefined>(
     getRandomSquare(undefined)
   );
@@ -87,7 +82,9 @@ const SearchSquareGame = (props: SearchSquareGameProps) => {
       `[data-square="${square}"]`
     ) as HTMLElement;
     const originalColor = clickedSquare.style.backgroundColor;
+    setTotal(total + 1);
 
+    // Correct Guess
     if (square === currentSquare) {
       clickedSquare.style.transition = "background-color 0.1s";
       clickedSquare.style.backgroundColor = "green";
@@ -95,10 +92,17 @@ const SearchSquareGame = (props: SearchSquareGameProps) => {
         clickedSquare.style.backgroundColor = originalColor;
         clickedSquare.style.transition = "";
       }, 100);
+      setScore(score + 1);
+      if (selectedColor === "random") {
+        setOrientation(getRandomColor());
+      }
       setCurrentSquare(nextSquare);
+
+      // Incorrect Guess
     } else {
       clickedSquare.style.transition = "background-color 0.1s";
       clickedSquare.style.backgroundColor = "red";
+      setScore(score - 1);
       setTimeout(() => {
         clickedSquare.style.backgroundColor = originalColor;
         clickedSquare.style.transition = "";
@@ -125,16 +129,18 @@ const SearchSquareGame = (props: SearchSquareGameProps) => {
       >
         <p className="w-24 text-center">Score: {score}</p>
         <p className="w-24 text-center">
-          <span className="font-bold">
-            {currentSquare} {nextSquare}
-          </span>
+          <span className="font-bold text-lg">{currentSquare}</span>
         </p>
-        <p className="w-24 text-center">
-          {Math.floor(Math.ceil(time) / 60) < 10 ? "0" : ""}
-          {Math.floor(Math.ceil(time) / 60)}:
-          {Math.ceil(time) % 60 < 10 ? "0" : ""}
-          {Math.ceil(time) % 60}
-        </p>
+        {isPractice ? (
+          <p className="w-24 text-center"></p>
+        ) : (
+          <p className="w-24 text-center">
+            {Math.floor(Math.ceil(time) / 60) < 10 ? "0" : ""}
+            {Math.floor(Math.ceil(time) / 60)}:
+            {Math.ceil(time) % 60 < 10 ? "0" : ""}
+            {Math.ceil(time) % 60}
+          </p>
+        )}
       </div>
 
       <ChessboardWrapper>
@@ -167,11 +173,23 @@ const SearchSquareGame = (props: SearchSquareGameProps) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Time's up!</AlertDialogTitle>
             <AlertDialogDescription>
-              Your final score: {score} / {total}
+              Your final score: {score}
+            </AlertDialogDescription>
+            <AlertDialogDescription>
+              Correct Guesses: {(total + score) / 2}
+            </AlertDialogDescription>
+            <AlertDialogDescription>
+              Incorrect Guesses: {(total - score) / 2}
+            </AlertDialogDescription>
+            <AlertDialogDescription>
+              Total Guesses: {total}
             </AlertDialogDescription>
             <AlertDialogDescription>
               Your accuracy:{" "}
-              {total === 0 ? "0.00%" : ((score / total) * 100).toFixed(2)}%
+              {total === 0
+                ? "0.00"
+                : (((total + score) / 2 / total) * 100).toFixed(2)}
+              %
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

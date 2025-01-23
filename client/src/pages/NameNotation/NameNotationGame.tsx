@@ -23,8 +23,6 @@ import { isMobile } from "@/lib/is-mobile";
 import { ChessColor } from "@/lib/common-types";
 import ChessboardWrapper from "@/components/ChessboardWrapper";
 import { chessboardWidth } from "@/lib/common-values";
-// import { createMmAnalytics } from "@/services/mmAnalyticsService";
-// import { useUser } from "@/components/UserProvider";
 
 const MAX_TIME = 60;
 const DEFAULT_BORDER_COLOR = "border-inherit";
@@ -43,7 +41,6 @@ const NameNotationGame = (props: NameNotationGameProps) => {
   const fen = useFen();
   const [time, setTime] = useState(MAX_TIME);
   const [score, setScore] = useState(0);
-  const [total, setTotal] = useState(0);
   const [position, setPosition] = useState<string | undefined>(undefined);
   const [move, setMove] = useState("");
   const [orientation, setOrientation] = useState<BoardOrientation>("white");
@@ -74,7 +71,6 @@ const NameNotationGame = (props: NameNotationGameProps) => {
   useEffect(() => {
     if (userAnswer.toLowerCase() === move.toLowerCase() && move !== "") {
       setScore(score + 1);
-      setTotal(total + 1);
       setBorderColor(CORRECT_BORDER_COLOR);
 
       setTimeout(() => {
@@ -105,7 +101,7 @@ const NameNotationGame = (props: NameNotationGameProps) => {
     const interval = setInterval(handleInterval, 100);
 
     return () => clearInterval(interval);
-  }, [isActiveGame, isPractice, score, total]);
+  }, [isActiveGame, isPractice, score]);
 
   // Create MmAnalytics when game is over
   // useEffect(() => {
@@ -151,7 +147,6 @@ const NameNotationGame = (props: NameNotationGameProps) => {
   const handleReset = () => {
     generateNextPosition();
     setScore(0);
-    setTotal(0);
     setTime(MAX_TIME);
     setIsActiveGame(true);
   };
@@ -180,9 +175,6 @@ const NameNotationGame = (props: NameNotationGameProps) => {
         className={`${chessboardWidth} flex justify-between items-center py-2`}
       >
         <p className="w-24 text-center">Score: {score}</p>
-        <p className="w-24 text-center">
-          {orientation.charAt(0)}: <span className="font-bold">{move}</span>
-        </p>
         {isPractice ? (
           <p className="w-24 text-center"></p>
         ) : (
@@ -197,26 +189,10 @@ const NameNotationGame = (props: NameNotationGameProps) => {
 
       <Input
         className={`${chessboardWidth} mb-4 border-2 border-solid ${borderColor}`}
-        // style={{
-        //   border: `2px solid ${borderColor}`,
-        // }}
         placeholder="Move"
         value={userAnswer}
         onChange={handleAnswerChange}
       />
-      {/* <Button
-          className="flex-none basis-1/12 bg-green-600 hover:bg-green-500"
-          type="submit"
-        >
-          Submit
-        </Button>
-        <Button
-          className="flex-none basis-1/12 bg-red-600 hover:bg-red-500"
-          type="button"
-          onClick={handleSkipPosition}
-        >
-          Skip
-        </Button> */}
 
       <ChessboardWrapper>
         <Chessboard
@@ -248,11 +224,7 @@ const NameNotationGame = (props: NameNotationGameProps) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Time's up!</AlertDialogTitle>
             <AlertDialogDescription>
-              Your final score: {score} / {total}
-            </AlertDialogDescription>
-            <AlertDialogDescription>
-              Your accuracy:{" "}
-              {total === 0 ? "0.00%" : ((score / total) * 100).toFixed(2)}%
+              Your final score: {score}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

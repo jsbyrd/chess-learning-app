@@ -56,8 +56,9 @@ const SearchSquareInstructions = (props: SearchSquareInstructionsProps) => {
           <p className="text-md">
             <span className="font-bold">Instructions:</span> You will be given a
             random coordinate. Your goal is to click the square that corresponds
-            to that coordinate. Click as many correct squares as possible in 60
-            seconds!
+            to that coordinate. Get it right and you gain a point. Get it wrong
+            and you lose a point. Click as many correct squares as possible in
+            60 seconds!
           </p>
         </div>
       </div>
