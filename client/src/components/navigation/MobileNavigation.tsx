@@ -104,8 +104,8 @@ const MobileNavigation = () => {
               </AccordionItem>
             </Accordion>
             <SheetClose asChild>
-              <NavLink to="/docs" className="p-2 hover:bg-muted rounded-md">
-                View Analytics
+              <NavLink to="/analysis" className="p-2 hover:bg-muted rounded-md">
+                Analysis Tool
               </NavLink>
             </SheetClose>
           </div>

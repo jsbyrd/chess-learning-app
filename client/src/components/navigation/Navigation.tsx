@@ -100,8 +100,8 @@ const Navigation = () => {
             </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <NavLink to="/docs" className={navigationMenuTriggerStyle()}>
-              View Analytics
+            <NavLink to="/analysis" className={navigationMenuTriggerStyle()}>
+              Analysis Tool
             </NavLink>
           </NavigationMenuItem>
         </NavigationMenuList>

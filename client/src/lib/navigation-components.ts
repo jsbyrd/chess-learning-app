@@ -67,7 +67,7 @@ export const coordinatesNavComponent: {
   },
   {
     title: "Search Squares",
-    href: "/coordinates/search-squares",
+    href: "/coordinates/search-square",
     description:
       "Find the square the corresponds to the given coordinates as fast as possible!",
   },

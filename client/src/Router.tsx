@@ -5,6 +5,8 @@ import MakeMove from "./pages/MakeMove/MakeMove";
 import NameNotation from "./pages/NameNotation/NameNotation";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
+import Analysis from "./pages/Analysis/Analysis";
+import SearchSquare from "./pages/SearchSquares/SearchSquare";
 
 function Router() {
   return (
@@ -18,6 +20,9 @@ function Router() {
         {/* Coordinates */}
         <Route path="/coordinates/make-move" element={<MakeMove />} />
         <Route path="/coordinates/name-notation" element={<NameNotation />} />
+        <Route path="/coordinates/search-square" element={<SearchSquare />} />
+        {/* Analysis */}
+        <Route path="/analysis" element={<Analysis />} />
       </Route>
     </Routes>
   );
