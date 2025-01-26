@@ -15,7 +15,7 @@ export class UserService {
     try {
       const user = await this.prisma.user.create({
         data: {
-          email: dto.email,
+          username: dto.username,
           passwordHash: hash,
           ...(dto.role && { role: dto.role }),
         },
@@ -38,7 +38,7 @@ export class UserService {
   async getUser(dto: AuthDto): Promise<User> {
     const user: User = await this.prisma.user.findUnique({
       where: {
-        email: dto.email,
+        username: dto.username,
       },
     });
 

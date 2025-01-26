@@ -38,7 +38,7 @@ export class AuthService {
   private generateAccessToken(user: User, response: Response) {
     const tokenPayload = {
       sub: user.id,
-      email: user.email,
+      username: user.username,
     };
 
     const accessToken = this.jwtService.sign(tokenPayload, {
@@ -56,7 +56,7 @@ export class AuthService {
   private async generateRefreshToken(user: User, response: Response) {
     const tokenPayload = {
       sub: user.id,
-      email: user.email,
+      username: user.username,
     };
 
     const refreshToken = this.jwtService.sign(tokenPayload, {

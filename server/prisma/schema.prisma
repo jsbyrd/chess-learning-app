@@ -18,17 +18,17 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  email String @unique
+  username String @unique
   passwordHash String
 
   role Role @default(USER)
   refreshToken String?
 
-  analytics Analytics[]
-  @@map("users")
+  minigameStats MinigameStat[]
+  @@map("Users")
 }
 
-model Analytics {
+model MinigameStat {
   id Int @id @default(autoincrement())
   createdAt DateTime @default(now())
 
@@ -38,7 +38,7 @@ model Analytics {
   userId Int
   user User @relation(fields: [userId], references: [id])
 
-  @@map("analytics")
+  @@map("MinigameStats")
 }
 
 enum Role {
@@ -49,4 +49,5 @@ enum Role {
 enum Game {
   MAKEMOVE
   NAMENOTATION
+  SEARCHSQUARE
 }
