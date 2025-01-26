@@ -187,8 +187,7 @@ const MakeMoveGame = (props: MakeMoveGameProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-3xl font-bold text-center mb-2">Make That Move</h1>
+    <div className="flex flex-col items-center container mx-auto px-4 max-w-3xl">
       <div
         className={`${chessboardWidth} flex justify-between items-center py-2`}
       >
@@ -232,7 +231,7 @@ const MakeMoveGame = (props: MakeMoveGameProps) => {
       <AlertDialog open={showPopup} onOpenChange={setShowPopup}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Time's up!</AlertDialogTitle>
+            <AlertDialogTitle>Make That Move Results</AlertDialogTitle>
             <AlertDialogDescription>
               Your final score: {score}
             </AlertDialogDescription>

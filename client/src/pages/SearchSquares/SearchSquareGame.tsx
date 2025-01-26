@@ -171,7 +171,7 @@ const SearchSquareGame = (props: SearchSquareGameProps) => {
       <AlertDialog open={showPopup} onOpenChange={setShowPopup}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Time's up!</AlertDialogTitle>
+            <AlertDialogTitle>Search That Square Results</AlertDialogTitle>
             <AlertDialogDescription>
               Your final score: {score}
             </AlertDialogDescription>

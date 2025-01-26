@@ -24,9 +24,10 @@ import { ChessColor } from "@/lib/common-types";
 import ChessboardWrapper from "@/components/ChessboardWrapper";
 import { chessboardWidth } from "@/lib/common-values";
 
-const MAX_TIME = 60;
+const MAX_TIME = 6000;
 const DEFAULT_BORDER_COLOR = "border-inherit";
-const CORRECT_BORDER_COLOR = "border-primary";
+const CORRECT_BORDER_COLOR = "border-green-800"; // "border-primary";
+const INCORRECT_BORDER_COLOR = "border-red-800";
 
 export interface NameNotationGameProps {
   setIsPlaying: (isPlaying: boolean) => void;
@@ -41,10 +42,12 @@ const NameNotationGame = (props: NameNotationGameProps) => {
   const fen = useFen();
   const [time, setTime] = useState(MAX_TIME);
   const [score, setScore] = useState(0);
+  const [total, setTotal] = useState(0);
   const [position, setPosition] = useState<string | undefined>(undefined);
   const [move, setMove] = useState("");
   const [orientation, setOrientation] = useState<BoardOrientation>("white");
   const [showPopup, setShowPopup] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   // isActiveGame deals with whether there is an ongoing game, whereas isPlaying deals with whether the user should be on the instructions page or game page
   const [isActiveGame, setIsActiveGame] = useState(true);
   const [customArrows, setCustomArrows] = useState<Arrow[] | undefined>(
@@ -67,19 +70,40 @@ const NameNotationGame = (props: NameNotationGameProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Move onto next position after a correct answer
-  useEffect(() => {
+  const handleAnswerSubmission = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsButtonDisabled(true);
+    setTotal(total + 1);
+
     if (userAnswer.toLowerCase() === move.toLowerCase() && move !== "") {
       setScore(score + 1);
       setBorderColor(CORRECT_BORDER_COLOR);
-
-      setTimeout(() => {
-        generateNextPosition();
-        setUserAnswer("");
-        setBorderColor(DEFAULT_BORDER_COLOR);
-      }, 500);
+    } else {
+      setScore(score - 1);
+      setBorderColor(INCORRECT_BORDER_COLOR);
     }
-  }, [userAnswer, move]);
+
+    setTimeout(() => {
+      generateNextPosition();
+      setUserAnswer("");
+      setBorderColor(DEFAULT_BORDER_COLOR);
+      setIsButtonDisabled(false);
+    }, 500);
+  };
+
+  // Move onto next position after a correct answer
+  // useEffect(() => {
+  //   if (userAnswer.toLowerCase() === move.toLowerCase() && move !== "") {
+  //     setScore(score + 1);
+  //     setBorderColor(CORRECT_BORDER_COLOR);
+
+  //     setTimeout(() => {
+  //       generateNextPosition();
+  //       setUserAnswer("");
+  //       setBorderColor(DEFAULT_BORDER_COLOR);
+  //     }, 500);
+  //   }
+  // }, [userAnswer, move]);
 
   // Handle time limit for non-practice games
   useEffect(() => {
@@ -147,6 +171,7 @@ const NameNotationGame = (props: NameNotationGameProps) => {
   const handleReset = () => {
     generateNextPosition();
     setScore(0);
+    setTotal(0);
     setTime(MAX_TIME);
     setIsActiveGame(true);
   };
@@ -156,20 +181,10 @@ const NameNotationGame = (props: NameNotationGameProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-3xl font-bold text-center mb-2">
+    <div className="flex flex-col items-center container mx-auto px-4 max-w-3xl">
+      {/* <h1 className="text-3xl font-bold text-center mb-2">
         Name That Notation
-      </h1>
-
-      {/* <div className="flex flex-wrap gap-4 justify-evenly align-center container mx-auto px-4 py-2 max-w-3xl">
-        <div className="text-2xl">
-          Score: {score} / {total}
-        </div>
-        <div className="text-2xl">Color: {orientation.toUpperCase()}</div>
-        {!isPractice && (
-          <div className="text-2xl">Time Left: {Math.ceil(time)}</div>
-        )}
-      </div> */}
+      </h1> */}
 
       <div
         className={`${chessboardWidth} flex justify-between items-center py-2`}
@@ -187,12 +202,24 @@ const NameNotationGame = (props: NameNotationGameProps) => {
         )}
       </div>
 
-      <Input
-        className={`${chessboardWidth} mb-4 border-2 border-solid ${borderColor}`}
-        placeholder="Move"
-        value={userAnswer}
-        onChange={handleAnswerChange}
-      />
+      <form
+        onSubmit={handleAnswerSubmission}
+        className={`flex gap-3 ${chessboardWidth}`}
+      >
+        <Input
+          className={`${chessboardWidth} mb-4 border-2 border-solid ${borderColor}`}
+          placeholder="Move"
+          value={userAnswer}
+          onChange={handleAnswerChange}
+        />
+        <Button
+          className="flex-none basis-1/12 bg-green-600 hover:bg-green-500"
+          type="submit"
+          disabled={isButtonDisabled}
+        >
+          Submit
+        </Button>
+      </form>
 
       <ChessboardWrapper>
         <Chessboard
@@ -222,9 +249,25 @@ const NameNotationGame = (props: NameNotationGameProps) => {
       <AlertDialog open={showPopup} onOpenChange={setShowPopup}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Time's up!</AlertDialogTitle>
+            <AlertDialogTitle>Name That Notation Results</AlertDialogTitle>
             <AlertDialogDescription>
               Your final score: {score}
+            </AlertDialogDescription>
+            <AlertDialogDescription>
+              Correct Guesses: {(total + score) / 2}
+            </AlertDialogDescription>
+            <AlertDialogDescription>
+              Incorrect Guesses: {(total - score) / 2}
+            </AlertDialogDescription>
+            <AlertDialogDescription>
+              Total Guesses: {total}
+            </AlertDialogDescription>
+            <AlertDialogDescription>
+              Your accuracy:{" "}
+              {total === 0
+                ? "0.00"
+                : (((total + score) / 2 / total) * 100).toFixed(2)}
+              %
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
