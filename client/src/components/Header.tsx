@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import DropMenu from "./DropMenu";
 
 const Header = () => {
-  const { email, isLoggedIn } = useUser();
+  const { username, isLoggedIn } = useUser();
 
   const rightSideHeader = useMemo(() => {
     return isLoggedIn ? (
@@ -26,7 +26,7 @@ const Header = () => {
         </NavLink>
       </>
     );
-  }, [isLoggedIn, email]);
+  }, [isLoggedIn, username]);
 
   return (
     <header className="sticky flex justify-between md:justify-around h-14 top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

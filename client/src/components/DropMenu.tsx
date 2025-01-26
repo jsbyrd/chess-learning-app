@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import getEmailInitials from "@/lib/get-email-initials";
 import { useUser } from "./UserProvider/use-user-hook";
 import { LogOut, Settings, User } from "lucide-react";
 import customAxios from "@/api/custom-axios";
@@ -16,14 +15,14 @@ import { AxiosError } from "axios";
 import { toast } from "@/hooks/use-toast";
 
 const DropMenu = () => {
-  const { email, handleLogout } = useUser();
+  const { username, handleLogout } = useUser();
 
   const handleLogoutPress = async () => {
     try {
       await customAxios.post("/auth/logout");
       toast({
         title: "Successful logout",
-        description: `You have logged out of ${email}, goodbye 😞`,
+        description: `You have logged out of ${username}, goodbye 😞`,
       });
       handleLogout();
     } catch (error) {
@@ -53,7 +52,7 @@ const DropMenu = () => {
       <DropdownMenuTrigger asChild>
         <Avatar className="ml-4 hover:cursor-pointer">
           <AvatarImage src="/default_pfp.svg" alt="default profile picture" />
-          <AvatarFallback>{getEmailInitials(email)}</AvatarFallback>
+          <AvatarFallback>{username.slice(0, 2)}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">

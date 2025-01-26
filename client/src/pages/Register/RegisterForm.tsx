@@ -19,15 +19,15 @@ export function RegisterForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [isDisabled, setIsDisabled] = useState(false);
   const { toast } = useToast();
   const { handleLogin } = useUser();
 
-  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+  const handleUsernameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value);
   };
 
   const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -55,11 +55,11 @@ export function RegisterForm({
       }
       // Make account
       const data = {
-        email: email,
+        username: username,
         password: password,
       };
       await customAxios.post("/auth/register", data);
-      handleLogin(email);
+      handleLogin(username);
     } catch (error) {
       if (error instanceof AxiosError) {
         toast({
@@ -82,20 +82,19 @@ export function RegisterForm({
         <CardHeader>
           <CardTitle className="text-2xl">Register</CardTitle>
           <CardDescription>
-            Enter your email below to create your account
+            Enter your username below to create your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  value={email}
-                  onChange={handleEmailChange}
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
+                  value={username}
+                  onChange={handleUsernameChange}
+                  id="username"
+                  placeholder="username"
                   required
                 />
               </div>

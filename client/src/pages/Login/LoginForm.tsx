@@ -19,14 +19,14 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const { toast } = useToast();
   const [isDisabled, setIsDisabled] = useState(false);
   const { handleLogin } = useUser();
 
-  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+  const handleUsernameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value);
   };
 
   const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -39,11 +39,11 @@ export function LoginForm({
 
     try {
       // First authenticate
-      const authData = { email: email, password: password };
+      const authData = { username: username, password: password };
       await customAxios.post("/auth/login", authData);
       // After authentication, fetch user info
       const res = await customAxios.get("/users/");
-      handleLogin(res.data.email);
+      handleLogin(res.data.username);
     } catch (error) {
       console.log(error);
       if (error instanceof AxiosError) {
@@ -67,19 +67,19 @@ export function LoginForm({
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your username below to login to your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={handleEmailChange}
+                  id="username"
+                  type="username"
+                  value={username}
+                  onChange={handleUsernameChange}
                   placeholder="abc@example.com"
                   required
                 />

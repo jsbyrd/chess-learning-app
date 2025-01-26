@@ -4,9 +4,9 @@ import { createContext, ReactNode, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
 export interface User {
-  email: string;
+  username: string;
   isLoggedIn: boolean;
-  handleLogin: (email: string) => void;
+  handleLogin: (username: string) => void;
   handleLogout: () => void;
 }
 
@@ -25,15 +25,15 @@ export const UserContext = createContext<User | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const fetchUserInfo = async () => {
     try {
       const res = await customAxios.get("/users/");
-      setEmail(res.data.email);
+      setUsername(res.data.username);
       setIsLoggedIn(true);
-      console.log("logged into " + res.data.email);
+      console.log("logged into " + res.data.username);
     } catch (err) {
       setIsLoggedIn(false);
     }
@@ -44,25 +44,25 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     fetchUserInfo();
   }, []);
 
-  const handleLogin = (email: string) => {
-    setEmail(email);
+  const handleLogin = (username: string) => {
+    setUsername(username);
     setIsLoggedIn(true);
     toast({
       title: "Login successful",
-      description: `Welcome back, ${email}`,
+      description: `Welcome back, ${username}`,
     });
     navigate("/");
   };
 
   const handleLogout = () => {
-    setEmail("");
+    setUsername("");
     setIsLoggedIn(false);
     navigate("/"); // Currently too lazy to check whether or not user is in protected page
   };
 
   const value = useMemo(
-    () => ({ email, isLoggedIn, handleLogin, handleLogout }),
-    [email, isLoggedIn, handleLogin, handleLogout]
+    () => ({ username, isLoggedIn, handleLogin, handleLogout }),
+    [username, isLoggedIn, handleLogin, handleLogout]
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
