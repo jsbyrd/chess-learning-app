@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { AnalyticsModule } from './analytics/analytics.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
+import { MinigameStatModule } from './minigame-stat/minigame-stat.module';
 
 @Module({
   imports: [
@@ -12,8 +12,8 @@ import { ConfigModule } from '@nestjs/config';
     }),
     AuthModule,
     UserModule,
-    AnalyticsModule,
     PrismaModule,
+    MinigameStatModule,
   ],
 })
 export class AppModule {}

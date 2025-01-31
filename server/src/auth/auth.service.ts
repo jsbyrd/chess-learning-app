@@ -42,7 +42,7 @@ export class AuthService {
     };
 
     const accessToken = this.jwtService.sign(tokenPayload, {
-      expiresIn: '1m', // TODO: Remove magic string
+      expiresIn: '10m', // TODO: Remove magic string
       secret: this.configService.get('JWT_ACCESS_SECRET'),
     });
 
