@@ -7,6 +7,7 @@ import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 import Analysis from "./pages/Analysis/Analysis";
 import SearchSquare from "./pages/SearchSquares/SearchSquare";
+import MinigameHistory from "./pages/MinigameHistory/MinigameHistory";
 
 function Router() {
   return (
@@ -23,6 +24,8 @@ function Router() {
         <Route path="/coordinates/search-square" element={<SearchSquare />} />
         {/* Analysis */}
         <Route path="/analysis" element={<Analysis />} />
+        {/* History */}
+        <Route path="/history/minigames" element={<MinigameHistory />} />
       </Route>
     </Routes>
   );

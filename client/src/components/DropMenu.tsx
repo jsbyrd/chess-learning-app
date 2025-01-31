@@ -9,13 +9,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useUser } from "./UserProvider/use-user-hook";
-import { LogOut, Settings, User } from "lucide-react";
+import { Gamepad2, LogOut, Settings, Swords, User } from "lucide-react";
 import customAxios from "@/api/custom-axios";
 import { AxiosError } from "axios";
 import { toast } from "@/hooks/use-toast";
+import { Link, useNavigate } from "react-router";
+
+const ICON_SIZE = 16;
 
 const DropMenu = () => {
   const { username, handleLogout } = useUser();
+  const navigate = useNavigate();
 
   const handleLogoutPress = async () => {
     try {
@@ -59,13 +63,42 @@ const DropMenu = () => {
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              navigate("/");
+            }}
+          >
             <User />
             Profile
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem
+            onClick={() => {
+              navigate("/");
+            }}
+            disabled
+          >
             <Settings />
             Settings
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            onClick={() => {
+              navigate("/");
+            }}
+            disabled
+          >
+            <Swords />
+            Game History
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              navigate("/history/minigames");
+            }}
+          >
+            <Gamepad2 />
+            Minigame History
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

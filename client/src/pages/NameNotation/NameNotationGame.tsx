@@ -23,10 +23,12 @@ import { isMobile } from "@/lib/is-mobile";
 import { ChessColor } from "@/lib/common-types";
 import ChessboardWrapper from "@/components/ChessboardWrapper";
 import { chessboardWidth } from "@/lib/common-values";
+import customAxios from "@/api/custom-axios";
+import { useUser } from "@/components/UserProvider/use-user-hook";
 
-const MAX_TIME = 6000;
+const MAX_TIME = 60;
 const DEFAULT_BORDER_COLOR = "border-inherit";
-const CORRECT_BORDER_COLOR = "border-green-800"; // "border-primary";
+const CORRECT_BORDER_COLOR = "border-green-600";
 const INCORRECT_BORDER_COLOR = "border-red-800";
 
 export interface NameNotationGameProps {
@@ -38,7 +40,7 @@ export interface NameNotationGameProps {
 
 const NameNotationGame = (props: NameNotationGameProps) => {
   const { setIsPlaying, selectedColor, isPractice, showCoordinates } = props;
-  // const user = useUser();
+  const user = useUser();
   const fen = useFen();
   const [time, setTime] = useState(MAX_TIME);
   const [score, setScore] = useState(0);
@@ -91,19 +93,21 @@ const NameNotationGame = (props: NameNotationGameProps) => {
     }, 500);
   };
 
-  // Move onto next position after a correct answer
-  // useEffect(() => {
-  //   if (userAnswer.toLowerCase() === move.toLowerCase() && move !== "") {
-  //     setScore(score + 1);
-  //     setBorderColor(CORRECT_BORDER_COLOR);
+  // Create game stats when game is over
+  useEffect(() => {
+    const handleCreateGameStats = async () => {
+      if (time === 0 && user.isLoggedIn) {
+        // TODO: Remove magic strings
+        await customAxios.post("/minigame-stats", {
+          game: "NAMENOTATION",
+          score: score,
+          total: total,
+        });
+      }
+    };
 
-  //     setTimeout(() => {
-  //       generateNextPosition();
-  //       setUserAnswer("");
-  //       setBorderColor(DEFAULT_BORDER_COLOR);
-  //     }, 500);
-  //   }
-  // }, [userAnswer, move]);
+    handleCreateGameStats();
+  }, [score, time, total, user.isLoggedIn, user.username]);
 
   // Handle time limit for non-practice games
   useEffect(() => {

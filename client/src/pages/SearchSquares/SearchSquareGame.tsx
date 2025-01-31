@@ -20,8 +20,8 @@ import ChessboardWrapper from "@/components/ChessboardWrapper";
 import { chessboardWidth } from "@/lib/common-values";
 import getRandomSquare from "@/lib/get-random-square";
 import getRandomColor from "@/lib/get-random-color";
-// import { createMmAnalytics } from "@/services/mmAnalyticsService";
-// import { useUser } from "@/components/UserProvider";
+import customAxios from "@/api/custom-axios";
+import { useUser } from "@/components/UserProvider/use-user-hook";
 
 const MAX_TIME = 60;
 
@@ -34,6 +34,7 @@ export interface SearchSquareGameProps {
 
 const SearchSquareGame = (props: SearchSquareGameProps) => {
   const { setIsPlaying, selectedColor, isPractice, showCoordinates } = props;
+  const user = useUser();
   const [time, setTime] = useState(MAX_TIME);
   const [score, setScore] = useState(0);
   const [total, setTotal] = useState(0);
@@ -76,6 +77,22 @@ const SearchSquareGame = (props: SearchSquareGameProps) => {
 
     return () => clearInterval(interval);
   }, [isActiveGame, isPractice, score, total]);
+
+  // Create game stats when game is over
+  useEffect(() => {
+    const handleCreateGameStats = async () => {
+      if (time === 0 && user.isLoggedIn) {
+        // TODO: Remove magic strings
+        await customAxios.post("/minigame-stats", {
+          game: "SEARCHSQUARE",
+          score: score,
+          total: total,
+        });
+      }
+    };
+
+    handleCreateGameStats();
+  }, [score, time, total, user.isLoggedIn, user.username]);
 
   const handleSquareClick = (square: Square) => {
     const clickedSquare = document.querySelector(

@@ -22,6 +22,8 @@ import { isMobile } from "@/lib/is-mobile";
 import { ChessColor } from "@/lib/common-types";
 import ChessboardWrapper from "@/components/ChessboardWrapper";
 import { chessboardWidth } from "@/lib/common-values";
+import { useUser } from "@/components/UserProvider/use-user-hook";
+import customAxios from "@/api/custom-axios";
 // import { createMmAnalytics } from "@/services/mmAnalyticsService";
 // import { useUser } from "@/components/UserProvider";
 
@@ -36,7 +38,7 @@ export interface MakeMoveGameProps {
 
 const MakeMoveGame = (props: MakeMoveGameProps) => {
   const { setIsPlaying, selectedColor, isPractice, showCoordinates } = props;
-  // const user = useUser();
+  const user = useUser();
   const fen = useFen();
   const [time, setTime] = useState(MAX_TIME);
   const [score, setScore] = useState(0);
@@ -73,7 +75,7 @@ const MakeMoveGame = (props: MakeMoveGameProps) => {
 
     const handleInterval = () => {
       setTime((prevTime) => {
-        // When time gets to 0, switch off game and save game data
+        // Switch off game when time goes to 0
         if (prevTime <= 0.1) {
           clearInterval(interval);
           setShowPopup(true);
@@ -89,16 +91,21 @@ const MakeMoveGame = (props: MakeMoveGameProps) => {
     return () => clearInterval(interval);
   }, [isActiveGame, isPractice, score, total]);
 
-  // Create MmAnalytics when game is over
-  // useEffect(() => {
-  //   const handleCreateMmAnalytics = async () => {
-  //     if (time === 0 && user.isLoggedIn) {
-  //       await createMmAnalytics(user.username, user.password, score, total);
-  //     }
-  //   };
+  // Create game stats when game is over
+  useEffect(() => {
+    const handleCreateGameStats = async () => {
+      if (time === 0 && user.isLoggedIn) {
+        // TODO: Remove magic strings
+        await customAxios.post("/minigame-stats", {
+          game: "MAKEMOVE",
+          score: score,
+          total: total,
+        });
+      }
+    };
 
-  //   handleCreateMmAnalytics();
-  // }, [score, time, total, user.isLoggedIn, user.password, user.username]);
+    handleCreateGameStats();
+  }, [score, time, total, user.isLoggedIn, user.username]);
 
   // Returns true if it involves a check, checkmate, or castling
   const isSpecialMove = (move: string) => {
