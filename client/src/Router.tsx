@@ -8,6 +8,12 @@ import Register from "./pages/Register/Register";
 import Analysis from "./pages/Analysis/Analysis";
 import SearchSquare from "./pages/SearchSquares/SearchSquare";
 import MinigameHistory from "./pages/MinigameHistory/MinigameHistory";
+import { socket, WebsocketProvider } from "./components/WebSocketContext";
+import GameLayout from "./pages/Multiplayer/GameLayout";
+import CreateGame from "./pages/Multiplayer/CreateGame";
+import JoinGame from "./pages/Multiplayer/JoinGame";
+import WaitGame from "./pages/Multiplayer/WaitGame";
+import PlayGame from "./pages/Multiplayer/PlayGame";
 
 function Router() {
   return (
@@ -22,6 +28,20 @@ function Router() {
         <Route path="/coordinates/make-move" element={<MakeMove />} />
         <Route path="/coordinates/name-notation" element={<NameNotation />} />
         <Route path="/coordinates/search-square" element={<SearchSquare />} />
+        {/* Games */}
+        <Route
+          path="/game"
+          element={
+            <WebsocketProvider value={socket}>
+              <GameLayout />
+            </WebsocketProvider>
+          }
+        >
+          <Route path="create" element={<CreateGame />}></Route>
+          <Route path="join" element={<JoinGame />}></Route>
+          <Route path="wait" element={<WaitGame />}></Route>
+          <Route path="play" element={<PlayGame />}></Route>
+        </Route>
         {/* Analysis */}
         <Route path="/analysis" element={<Analysis />} />
         {/* History */}
