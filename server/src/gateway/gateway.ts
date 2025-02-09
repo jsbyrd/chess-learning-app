@@ -21,8 +21,9 @@ type GameMetaData = {
   color2: string | null;
 };
 
-type GameUpdateState = {
+type OnUpdateGameMessage = {
   move: string;
+  player: string;
 };
 
 type OnCreateGameMessage = {
@@ -84,7 +85,7 @@ export class MyGateway implements OnModuleInit, OnModuleDestroy {
 
     this.redisSub.on('message', (channel, message) => {
       const msg = JSON.parse(message);
-      const eventType = msg.move ? 'onGameUpdate' : 'onGameStart';
+      const eventType = msg.move ? 'onUpdateGame' : 'onStartGame';
       this.server.to(channel).emit(eventType, message);
     });
   }
@@ -123,7 +124,7 @@ export class MyGateway implements OnModuleInit, OnModuleDestroy {
         gameId: gameId,
         msg: 'Something went wrong while trying to create the game. Please try again.',
       };
-      socket.emit('onGameCreate', JSON.stringify(createGameMsg));
+      socket.emit('onCreateGame', JSON.stringify(createGameMsg));
       return;
     }
 
@@ -133,7 +134,7 @@ export class MyGateway implements OnModuleInit, OnModuleDestroy {
       msg: 'Game has been successfully created',
     };
 
-    socket.emit('onGameCreate', JSON.stringify(createGameMsg));
+    socket.emit('onCreateGame', JSON.stringify(createGameMsg));
   }
 
   @SubscribeMessage('joinGame')
@@ -181,14 +182,17 @@ export class MyGateway implements OnModuleInit, OnModuleDestroy {
     await this.redisPub.publish(channel, metaDataStr);
   }
 
-  @SubscribeMessage('gameUpdate')
+  @SubscribeMessage('updateGame')
   async handleSendMessage(
-    @MessageBody() data: { gameId: string; move: string },
+    @MessageBody() data: { gameId: string; move: string; player: string },
   ) {
     const channel = `game:${data.gameId}`;
 
     // Publish message to the Redis channel
-    const updateGameMsg: GameUpdateState = { move: data.move };
+    const updateGameMsg: OnUpdateGameMessage = {
+      move: data.move,
+      player: data.player,
+    };
     await this.redisPub.publish(channel, JSON.stringify(updateGameMsg));
   }
 

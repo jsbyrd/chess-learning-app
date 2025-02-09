@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MinigameStatModule } from './minigame-stat/minigame-stat.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { RedisModule } from './redis/redis.module';
+import { GameModule } from './game/game.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RedisModule } from './redis/redis.module';
     PrismaModule,
     RedisModule,
     UserModule,
+    GameModule,
     MinigameStatModule,
   ],
 })
