@@ -17,8 +17,8 @@ type GameMetaData = {
 const WaitGame = () => {
   const [dots, setDots] = useState(0);
   const { toast } = useToast();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const gameId = searchParams.get("gameId");
   const socket = useOutletContext() as Socket;
 
@@ -34,13 +34,13 @@ const WaitGame = () => {
 
     // Todo: Check if gameId is actually valid
 
-    socket.on("onCreateGame", (payload: string) => {
+    socket.on("onStartGame", (payload: string) => {
       const res = JSON.parse(payload) as GameMetaData;
-      console.log(res);
+      navigate(`/game/play?gameId=${res.gameId}`);
     });
 
     return () => {
-      socket.off("onCreateGame");
+      socket.off("onStartGame");
     };
   }, []);
 

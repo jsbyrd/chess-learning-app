@@ -8,7 +8,7 @@ import Register from "./pages/Register/Register";
 import Analysis from "./pages/Analysis/Analysis";
 import SearchSquare from "./pages/SearchSquares/SearchSquare";
 import MinigameHistory from "./pages/MinigameHistory/MinigameHistory";
-import { socket, WebsocketProvider } from "./components/WebSocketContext";
+import { socket, WebsocketProvider } from "./components/WebsocketContext";
 import GameLayout from "./pages/Multiplayer/GameLayout";
 import CreateGame from "./pages/Multiplayer/CreateGame";
 import JoinGame from "./pages/Multiplayer/JoinGame";
