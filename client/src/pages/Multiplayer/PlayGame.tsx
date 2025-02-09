@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
-import { Button } from "@/components/ui/button";
 import { Chess, DEFAULT_POSITION } from "chess.js";
 import {
   BoardOrientation,
@@ -29,6 +28,7 @@ import axios from "axios";
 import { useNavigate, useOutletContext, useSearchParams } from "react-router";
 import { useUser } from "@/components/UserProvider/use-user-hook";
 import { Socket } from "socket.io-client";
+import { Button } from "@/components/ui/button";
 
 type GameMetaData = {
   gameId: string;
@@ -47,10 +47,7 @@ type OnUpdateGameMessage = {
 const PlayGame = () => {
   const { toast } = useToast();
   const { username } = useUser();
-  // const [position, setPosition] = useState<string>(defaultFen);
-  const [chessState, setChessState] = useState<Chess>(
-    new Chess(DEFAULT_POSITION)
-  );
+  const [position, setPosition] = useState<string>(DEFAULT_POSITION);
   const [playerOrientation, setPlayerOrientation] =
     useState<BoardOrientation>("white");
   const [opponentName, setOpponentName] = useState("UNKNOWN_ACCOUNT");
@@ -69,88 +66,73 @@ const PlayGame = () => {
         `${import.meta.env.VITE_API_BASE_URL}/games/ongoing/${gameId}`
       );
 
-      console.log(res);
-
       if (!res) throw new Error("Something went wrong");
       const data = res.data as GameMetaData;
 
-      // const data = JSON.parse(res.data) as GameMetaData;
       const isPlayer1 = data.p1 === username;
 
       setOpponentName(isPlayer1 ? data.p2 : data.p1);
-
       setPlayerOrientation(
         (isPlayer1 ? data.color1 : data.color2) as BoardOrientation
       );
+      setPosition(
+        "rnbqkbnr/1ppppppp/8/4P3/3P4/7P/PpP2PP1/RNBQKBNR b KQkq - 0 5"
+      );
+      const updatedGameState = new Chess(
+        "rnbqkbnr/1ppppppp/8/4P3/3P4/7P/PpP2PP1/RNBQKBNR b KQkq - 0 5"
+      );
+      setActiveColor(updatedGameState.turn() === "w" ? "white" : "black");
+      setIsActiveGame(true);
+      setEndGameMessage("");
+      setShowPopup(false);
     } catch (e) {
       navigate("/");
     }
-  }, [gameId]);
+  }, [username, gameId, navigate]);
 
   useEffect(() => {
-    socket.on("onUpdateGame", (payload: string) => {
+    const handleGameUpdate = (payload: string) => {
       const msg = JSON.parse(payload) as OnUpdateGameMessage;
       console.log(`${msg.player} played "${msg.move}"`);
-      // Make move
-      console.log("all moves", chessState.moves());
-      chessState.move(msg.move);
-      setChessState(chessState);
-      setActiveColor(chessState.turn() === "w" ? "white" : "black");
+      console.log("position before: " + position);
 
-      // Check for endgame
-      const endGameState = getEndGameState(chessState);
-      if (endGameState !== EndGameState.ACTIVE_GAME) {
-        setIsActiveGame(false);
-        setEndGameMessage(
-          getEndGameMessage(endGameState, playerOrientation === activeColor)
-        );
-        setShowPopup(true);
-        return;
-      }
-    });
+      setPosition((currentPosition) => {
+        console.log("position after: " + position);
+        console.log("current position: " + currentPosition);
+        const updatedGameState = new Chess(currentPosition);
+        updatedGameState.move(msg.move);
+
+        // Check for endgame
+        const endGameState = getEndGameState(updatedGameState);
+        if (endGameState !== EndGameState.ACTIVE_GAME) {
+          setIsActiveGame(false);
+          setEndGameMessage(
+            getEndGameMessage(endGameState, username === msg.player)
+          );
+          setShowPopup(true);
+        }
+
+        setActiveColor(updatedGameState.turn() === "w" ? "white" : "black");
+        return updatedGameState.fen();
+      });
+    };
+
+    socket.on("onUpdateGame", handleGameUpdate);
     fetchGameMetaData();
-  }, []);
 
-  // useEffect(() => {
-  //   if (endGameMessage !== "") {
-  //     setShowPopup(true);
-  //     // Navigate to Join/Create screen (currently, no "rematch" feature is planned)
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [endGameMessage]);
-
-  // When we receive a move from websockets, update board state
-  // useEffect(() => {
-  //   if (!move) return;
-  //   // Make move
-  //   const updatedGameState = new Chess(position);
-  //   updatedGameState.move(move);
-  //   setPosition(updatedGameState.fen());
-  //   setUserAnswer("");
-  //   setActiveColor(updatedGameState.turn() === "w" ? "white" : "black");
-
-  //   // Check for endgame
-  //   const endGameState = getEndGameState(updatedGameState);
-  //   if (endGameState !== EndGameState.ACTIVE_GAME) {
-  //     setIsActiveGame(false);
-  //     handleEndGameMessageChange(
-  //       getEndGameMessage(endGameState, playerColor === activeColor)
-  //     );
-  //     // setShowPopup(true);
-  //     return;
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
+    return () => {
+      socket.off("onUpdateGame");
+    };
+  }, [socket, username, fetchGameMetaData]);
 
   const handleMoveDrop = (
     sourceSquare: string,
     targetSquare: string,
     promotionPiece: string
   ) => {
-    console.log(sourceSquare, targetSquare, promotionPiece);
     try {
-      // Simulate user's move
-      const newGameState = new Chess(chessState.fen());
+      // Use current position state to make the move
+      const newGameState = new Chess(position);
       newGameState.move({
         from: sourceSquare,
         to: targetSquare,
@@ -172,31 +154,31 @@ const PlayGame = () => {
     }
   };
 
-  const handlePromotion = (
-    piece: PromotionPieceOption | undefined,
-    promoteFromSquare: Square | undefined,
-    promoteToSquare: Square | undefined
-  ) => {
-    if (!piece || !promoteFromSquare || !promoteToSquare) {
-      return false;
-    }
-    return handleMoveDrop(
-      promoteFromSquare as string,
-      promoteToSquare as string,
-      piece as string
-    );
-  };
-
   return (
     <div className="flex flex-col items-center container mx-auto px-4 py-8 max-w-3xl">
       <h1 className="text-3xl font-bold text-center mb-6">
         Playing Against {opponentName}
+        <Button
+          onClick={() => {
+            console.log(position);
+          }}
+        >
+          Get Fen
+        </Button>
+        <Button
+          onClick={() => {
+            const game = new Chess(position);
+            console.log(game.moves());
+          }}
+        >
+          Get Moves
+        </Button>
       </h1>
 
       <ChessboardWrapper>
         <Chessboard
           id="NotationTrainer"
-          position={chessState.fen()}
+          position={position}
           showBoardNotation={true}
           boardOrientation={playerOrientation as BoardOrientation}
           customBoardStyle={{
@@ -204,27 +186,10 @@ const PlayGame = () => {
           }}
           arePiecesDraggable={isActiveGame && activeColor === playerOrientation}
           onPieceDrop={handleMoveDrop}
-          onPromotionPieceSelect={handlePromotion}
           customDndBackend={isMobile() ? TouchBackend : undefined}
         />
       </ChessboardWrapper>
 
-      {/* <div className="flex justify-center space-x-4">
-        <Button
-          onClick={() => {
-            navigate("/game/create")
-          }}
-        >
-          Return to Create Game
-        </Button>
-        <Button
-          onClick={() => {
-            navigate("/game/join")
-          }}
-        >
-          Return to Join Game
-        </Button>
-      </div> */}
       <AlertDialog open={showPopup} onOpenChange={setShowPopup}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -232,9 +197,6 @@ const PlayGame = () => {
             <AlertDialogDescription>{endGameMessage}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            {/* <AlertDialogAction onClick={handleReset}>
-              Play Again
-            </AlertDialogAction> */}
             <AlertDialogAction
               onClick={() => {
                 navigate("/game/create");
