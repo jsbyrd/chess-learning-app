@@ -7,7 +7,7 @@ import { GameService } from './game.service';
 export class GameController {
   constructor(private readonly gameService: GameService) {}
 
-  // @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get('/ongoing/:gameId')
   getOngoingGame(@Req() req: Request, @Param() params: any) {
     return this.gameService.getOngoingGame(params.gameId);
