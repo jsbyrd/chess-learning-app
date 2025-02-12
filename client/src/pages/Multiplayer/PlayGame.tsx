@@ -29,6 +29,7 @@ import { useNavigate, useOutletContext, useSearchParams } from "react-router";
 import { useUser } from "@/components/UserProvider/use-user-hook";
 import { Socket } from "socket.io-client";
 import { Button } from "@/components/ui/button";
+import customAxios from "@/api/custom-axios";
 
 type GameMetaData = {
   gameId: string;
@@ -62,9 +63,7 @@ const PlayGame = () => {
 
   const fetchGameMetaData = useCallback(async () => {
     try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/games/ongoing/${gameId}`
-      );
+      const res = await customAxios.get(`/games/ongoing/${gameId}`);
 
       if (!res) throw new Error("Something went wrong");
       const data = res.data as GameMetaData;

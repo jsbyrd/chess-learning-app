@@ -41,8 +41,7 @@ const JoinGame = () => {
     socket.on("onJoinGame", (payload: string) => {
       const res = JSON.parse(payload) as OnJoinGameMessage;
       toast({
-        title: "Error",
-        variant: "destructive",
+        title: "Game Started!",
         description: res.msg,
       });
     });
