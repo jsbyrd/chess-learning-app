@@ -44,9 +44,11 @@ const JoinGame = () => {
         title: "Game Started!",
         description: res.msg,
       });
+      setIsDisabled(false);
     });
     socket.on("onStartGame", (payload: string) => {
       const res = JSON.parse(payload) as GameMetaData;
+      setIsDisabled(false);
       navigate(`/game/play?gameId=${res.gameId}`);
     });
 

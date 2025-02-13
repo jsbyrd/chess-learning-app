@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess, DEFAULT_POSITION } from "chess.js";
-import {
-  BoardOrientation,
-  PromotionPieceOption,
-  Square,
-} from "react-chessboard/dist/chessboard/types";
+import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +20,6 @@ import {
 import { isMobile } from "@/lib/is-mobile";
 import { TouchBackend } from "react-dnd-touch-backend";
 import ChessboardWrapper from "@/components/ChessboardWrapper";
-import axios from "axios";
 import { useNavigate, useOutletContext, useSearchParams } from "react-router";
 import { useUser } from "@/components/UserProvider/use-user-hook";
 import { Socket } from "socket.io-client";
@@ -41,8 +36,20 @@ type GameMetaData = {
 };
 
 type OnUpdateGameMessage = {
+  type: "onUpdateGame";
   move: string;
   player: string;
+};
+
+type OnRematchGameMessage = {
+  type: "onRematchGame";
+  player: string;
+};
+
+type OnPlayerQuitMessage = {
+  type: "onPlayerQuit";
+  gameId: string;
+  msg: string;
 };
 
 const PlayGame = () => {
@@ -56,6 +63,11 @@ const PlayGame = () => {
   const [activeColor, setActiveColor] = useState<BoardOrientation>("white");
   const [showPopup, setShowPopup] = useState(false);
   const [isActiveGame, setIsActiveGame] = useState(true);
+  const [userWantsRematch, setUserWantsRematch] = useState(false);
+  const [opponentWantsRematch, setOpponentWantsRematch] = useState(false);
+  const [isOpponentActive, setIsOpponentActive] = useState(true);
+  const [dots, setDots] = useState(0);
+  const [alertDialogFooterContent, setAlertDialogFooterContent] = useState("");
   const [searchParams] = useSearchParams();
   const gameId = searchParams.get("gameId");
   const socket = useOutletContext() as Socket;
@@ -67,6 +79,7 @@ const PlayGame = () => {
 
       if (!res) throw new Error("Something went wrong");
       const data = res.data as GameMetaData;
+      console.log(data);
 
       const isPlayer1 = data.p1 === username;
 
@@ -74,12 +87,7 @@ const PlayGame = () => {
       setPlayerOrientation(
         (isPlayer1 ? data.color1 : data.color2) as BoardOrientation
       );
-      setPosition(
-        "rnbqkbnr/1ppppppp/8/4P3/3P4/7P/PpP2PP1/RNBQKBNR b KQkq - 0 5"
-      );
-      const updatedGameState = new Chess(
-        "rnbqkbnr/1ppppppp/8/4P3/3P4/7P/PpP2PP1/RNBQKBNR b KQkq - 0 5"
-      );
+      const updatedGameState = new Chess(DEFAULT_POSITION);
       setActiveColor(updatedGameState.turn() === "w" ? "white" : "black");
       setIsActiveGame(true);
       setEndGameMessage("");
@@ -89,15 +97,24 @@ const PlayGame = () => {
     }
   }, [username, gameId, navigate]);
 
+  // Fetch game data on initial render. Send "quit" message on component unmount
+  useEffect(() => {
+    fetchGameMetaData();
+
+    return () => {
+      socket.emit("playerQuit", {
+        username: username,
+        gameId: gameId,
+      });
+    };
+  }, []);
+
+  // Handle Game/Move Update Messages
   useEffect(() => {
     const handleGameUpdate = (payload: string) => {
       const msg = JSON.parse(payload) as OnUpdateGameMessage;
-      console.log(`${msg.player} played "${msg.move}"`);
-      console.log("position before: " + position);
 
       setPosition((currentPosition) => {
-        console.log("position after: " + position);
-        console.log("current position: " + currentPosition);
         const updatedGameState = new Chess(currentPosition);
         updatedGameState.move(msg.move);
 
@@ -117,12 +134,72 @@ const PlayGame = () => {
     };
 
     socket.on("onUpdateGame", handleGameUpdate);
-    fetchGameMetaData();
 
     return () => {
-      socket.off("onUpdateGame");
+      socket.off("onUpdateGame", handleGameUpdate);
     };
-  }, [socket, username, fetchGameMetaData]);
+  }, []);
+
+  // Handle Rematch Messages
+  useEffect(() => {
+    const handleRematchGame = (payload: string) => {
+      const msg = JSON.parse(payload) as OnRematchGameMessage;
+      if (msg.player === username) {
+        setUserWantsRematch(true);
+      } else {
+        setAlertDialogFooterContent(`${opponentName} is waiting for a rematch`);
+        setOpponentWantsRematch(true);
+      }
+    };
+
+    socket.on("onRematchGame", handleRematchGame);
+
+    return () => {
+      socket.off("onRematchGame", handleRematchGame);
+    };
+  }, [opponentName, dots]);
+
+  // Handle when opponent quits (stop game if game is active, handle endgame message/rematch button is game is over)
+  useEffect(() => {
+    const handleOpponentQuitGame = (payload: string) => {
+      const msg = JSON.parse(payload) as OnPlayerQuitMessage;
+      setOpponentWantsRematch(false);
+      setIsOpponentActive(false);
+      if (isActiveGame) setEndGameMessage(msg.msg);
+      if (showPopup) setAlertDialogFooterContent(`${opponentName} has left.`);
+      setIsActiveGame(false);
+      setShowPopup(true);
+    };
+
+    socket.on("onPlayerQuit", handleOpponentQuitGame);
+
+    return () => {
+      socket.off("onPlayerQuit", handleOpponentQuitGame);
+    };
+  }, [opponentName, showPopup, isActiveGame]);
+
+  useEffect(() => {
+    if (!showPopup) return;
+
+    const interval = setInterval(() => {
+      setDots((prevDots) => (prevDots + 1) % 4);
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [showPopup]);
+
+  useEffect(() => {
+    // Reset game for rematch
+    if (userWantsRematch && opponentWantsRematch) {
+      setUserWantsRematch(false);
+      setOpponentWantsRematch(false);
+      setPosition(DEFAULT_POSITION);
+      setAlertDialogFooterContent("");
+      setActiveColor("white");
+      setShowPopup(false);
+      setIsActiveGame(true);
+    }
+  }, [userWantsRematch, opponentWantsRematch]);
 
   const handleMoveDrop = (
     sourceSquare: string,
@@ -157,7 +234,7 @@ const PlayGame = () => {
     <div className="flex flex-col items-center container mx-auto px-4 py-8 max-w-3xl">
       <h1 className="text-3xl font-bold text-center mb-6">
         Playing Against {opponentName}
-        <Button
+        {/* <Button
           onClick={() => {
             console.log(position);
           }}
@@ -171,7 +248,7 @@ const PlayGame = () => {
           }}
         >
           Get Moves
-        </Button>
+        </Button> */}
       </h1>
 
       <ChessboardWrapper>
@@ -193,23 +270,39 @@ const PlayGame = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Game Over!</AlertDialogTitle>
-            <AlertDialogDescription>{endGameMessage}</AlertDialogDescription>
+            <AlertDialogDescription>
+              <div className="flex flex-col gap-5">
+                <p>{endGameMessage}</p>
+                <div className="flex justify-between">
+                  <Button
+                    onClick={() => {
+                      navigate("/");
+                    }}
+                  >
+                    Leave Game
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      socket.emit("rematchGame", {
+                        username: username,
+                        gameId: gameId,
+                      });
+                    }}
+                    disabled={
+                      !isOpponentActive ||
+                      (isOpponentActive && userWantsRematch)
+                    }
+                  >
+                    Rematch
+                  </Button>
+                </div>
+              </div>
+            </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction
-              onClick={() => {
-                navigate("/game/create");
-              }}
-            >
-              Go to Create Game
-            </AlertDialogAction>
-            <AlertDialogAction
-              onClick={() => {
-                navigate("/game/join");
-              }}
-            >
-              Go to Join Game
-            </AlertDialogAction>
+
+          <AlertDialogFooter className="justify-end">
+            {alertDialogFooterContent}
+            {opponentWantsRematch && isOpponentActive && ".".repeat(dots)}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
