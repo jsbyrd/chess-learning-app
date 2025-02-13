@@ -23,7 +23,7 @@ export class GameGateway implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     this.server.on('connection', (socket: Socket) => {
       socket.on('disconnect', () => {
-        this.gameService.handlePlayerDisconnect(socket, this.server);
+        this.gameService.handlePlayerDisconnect(socket);
       });
     });
 
@@ -57,5 +57,20 @@ export class GameGateway implements OnModuleInit, OnModuleDestroy {
     @MessageBody() data: { gameId: string; move: string; player: string },
   ) {
     await this.gameService.updateGame(data);
+  }
+
+  @SubscribeMessage('rematchGame')
+  async handleRematchGame(
+    @MessageBody() data: { username: string; gameId: string },
+  ) {
+    await this.gameService.handleRematchGame(data);
+  }
+
+  @SubscribeMessage('playerQuit')
+  async handlePlayerQuit(
+    @MessageBody() data: { username: string; gameId: string },
+    @ConnectedSocket() socket: Socket,
+  ) {
+    await this.gameService.handlePlayerQuit(data.gameId, socket);
   }
 }

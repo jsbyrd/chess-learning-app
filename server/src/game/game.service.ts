@@ -9,18 +9,21 @@ import {
   GameMetaData,
   OnJoinGameMessage,
   OnUpdateGameMessage,
-  OnDisconnectMessage,
+  OnStartGameMessage,
+  OnRematchGame,
+  OnPlayerQuitMessage,
 } from './game.types';
 
 @Injectable()
 export class GameService {
   private redisPub: Redis;
   private redisSub: Redis;
+  // Todo: Replace this with Redis cache
   private playerGameMap: Map<string, string> = new Map();
 
   constructor(
-    private readonly redis: RedisService,
-    private readonly configService: ConfigService,
+    private redis: RedisService,
+    private configService: ConfigService,
   ) {
     const redisConfig = {
       port: this.configService.get<number>('REDIS_PORT'),
@@ -60,7 +63,7 @@ export class GameService {
 
     try {
       await socket.join(channel);
-      await this.redis.set(channel, metaDataStr, 'EX', 1800);
+      await this.redis.set(channel, metaDataStr, 'EX', 3600);
       await this.redisSub.subscribe(channel);
       this.playerGameMap.set(socket.id, gameId);
 
@@ -94,7 +97,7 @@ export class GameService {
       };
     }
 
-    const gameMetaData = JSON.parse(res) as GameMetaData;
+    let gameMetaData = JSON.parse(res) as GameMetaData;
 
     if (gameMetaData.numPlayers >= 2) {
       return {
@@ -106,12 +109,19 @@ export class GameService {
 
     gameMetaData.numPlayers++;
     gameMetaData.p2 = data.username;
-    const metaDataStr = JSON.stringify(gameMetaData);
+
+    console.log(gameMetaData);
+
+    await this.redis.set(channel, JSON.stringify(gameMetaData), 'EX', 3600);
+
+    const startGameMsg: OnStartGameMessage = {
+      type: 'onStartGame',
+      ...gameMetaData,
+    };
+    const metaDataStr = JSON.stringify(startGameMsg);
 
     this.playerGameMap.set(socket.id, data.gameId);
     await socket.join(channel);
-    // await this.redis.set(channel, metaDataStr, 'EX', 900);
-
     await this.redisPub.publish(channel, metaDataStr);
 
     return {
@@ -128,40 +138,68 @@ export class GameService {
   }): Promise<void> {
     const channel = `game:${data.gameId}`;
     const updateGameMsg: OnUpdateGameMessage = {
+      type: 'onUpdateGame',
       move: data.move,
       player: data.player,
     };
     await this.redisPub.publish(channel, JSON.stringify(updateGameMsg));
   }
 
-  async handlePlayerDisconnect(socket: Socket, server: Server): Promise<void> {
+  async handlePlayerQuit(gameId: string, socket: Socket): Promise<void> {
+    const channel = `game:${gameId}`;
+
+    await this.redis.del(channel);
+    this.playerGameMap.delete(socket.id);
+
+    const disconnectMsg: OnPlayerQuitMessage = {
+      type: 'onPlayerQuit',
+      gameId,
+      msg: 'Your opponent has disconnected. The game has ended.',
+    };
+
+    await this.redisPub.publish(channel, JSON.stringify(disconnectMsg));
+  }
+
+  async handlePlayerDisconnect(socket: Socket): Promise<void> {
     const gameId = this.playerGameMap.get(socket.id);
 
-    if (gameId) {
-      const channel = `game:${gameId}`;
-      const gameDataStr = await this.redis.get(channel);
+    if (!gameId) return;
 
-      if (gameDataStr) {
-        await this.redis.del(channel);
-        this.playerGameMap.delete(socket.id);
+    const channel = `game:${gameId}`;
+    const gameDataStr = await this.redis.get(channel);
 
-        const disconnectMsg: OnDisconnectMessage = {
-          gameId,
-          msg: 'Your opponent has disconnected. The game has ended.',
-        };
+    if (!gameDataStr) return;
 
-        server
-          .to(channel)
-          .emit('onPlayerDisconnect', JSON.stringify(disconnectMsg));
-      }
-    }
+    // Active game exists, let other player know that their opponent has quit
+    await this.handlePlayerQuit(gameId, socket);
+  }
+
+  async handleRematchGame(data: {
+    username: string;
+    gameId: string;
+  }): Promise<void> {
+    const channel = `game:${data.gameId}`;
+    const rematchGameMsg: OnRematchGame = {
+      type: 'onRematchGame',
+      player: data.username,
+    };
+    await this.redisPub.publish(channel, JSON.stringify(rematchGameMsg));
   }
 
   setupRedisSubscription(server: Server): void {
     this.redisSub.on('message', (channel, message) => {
-      const msg = JSON.parse(message);
-      const eventType = msg.move ? 'onUpdateGame' : 'onStartGame';
-      server.to(channel).emit(eventType, message);
+      try {
+        const msg = JSON.parse(message);
+
+        if (!msg.type) {
+          console.error('Received message without a type:', message);
+          return;
+        }
+
+        server.to(channel).emit(msg.type, message);
+      } catch (error) {
+        console.error('Error processing Redis message:', error);
+      }
     });
   }
 }
