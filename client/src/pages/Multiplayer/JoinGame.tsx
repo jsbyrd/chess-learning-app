@@ -13,21 +13,7 @@ import { useNavigate, useOutletContext } from "react-router";
 import { Socket } from "socket.io-client";
 import { useUser } from "@/components/UserProvider/use-user-hook";
 import { Input } from "@/components/ui/input";
-
-type OnJoinGameMessage = {
-  hasJoinedGame: boolean;
-  gameId: string;
-  msg: string | null;
-};
-
-type GameMetaData = {
-  gameId: string;
-  numPlayers: number;
-  p1: string | null;
-  color1: string | null;
-  p2: string | null;
-  color2: string | null;
-};
+import { GameMetaData, OnJoinGameMessage } from "./types";
 
 const JoinGame = () => {
   const [gameId, setGameId] = useState<string>();
@@ -71,9 +57,9 @@ const JoinGame = () => {
     <div className="flex flex-col items-center container mx-auto mt-10">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Create Game</CardTitle>
+          <CardTitle className="text-2xl">Join Game</CardTitle>
           <CardDescription>
-            Enter your username below to login to your account
+            Enter the Game ID below to start the game
           </CardDescription>
         </CardHeader>
         <CardContent>

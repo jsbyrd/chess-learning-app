@@ -4,14 +4,12 @@ import { Chess, DEFAULT_POSITION } from "chess.js";
 import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
 import {
   EndGameState,
   getEndGameMessage,
@@ -25,35 +23,16 @@ import { useUser } from "@/components/UserProvider/use-user-hook";
 import { Socket } from "socket.io-client";
 import { Button } from "@/components/ui/button";
 import customAxios from "@/api/custom-axios";
-
-type GameMetaData = {
-  gameId: string;
-  numPlayers: number;
-  p1: string;
-  color1: string;
-  p2: string;
-  color2: string;
-};
-
-type OnUpdateGameMessage = {
-  type: "onUpdateGame";
-  move: string;
-  player: string;
-};
-
-type OnRematchGameMessage = {
-  type: "onRematchGame";
-  player: string;
-};
-
-type OnPlayerQuitMessage = {
-  type: "onPlayerQuit";
-  gameId: string;
-  msg: string;
-};
+import {
+  GameMetaData,
+  OnPlayerQuitMessage,
+  OnRematchGameMessage,
+  OnUpdateGameMessage,
+} from "./types";
+import { formatTime } from "@/lib/format-time";
 
 const PlayGame = () => {
-  const { toast } = useToast();
+  // const { toast } = useToast();
   const { username } = useUser();
   const [position, setPosition] = useState<string>(DEFAULT_POSITION);
   const [playerOrientation, setPlayerOrientation] =
@@ -68,6 +47,13 @@ const PlayGame = () => {
   const [isOpponentActive, setIsOpponentActive] = useState(true);
   const [dots, setDots] = useState(0);
   const [alertDialogFooterContent, setAlertDialogFooterContent] = useState("");
+  const [originalGameData, setOriginalGameData] = useState<GameMetaData | null>(
+    null
+  );
+  const [isTimedGame, setIsTimedGame] = useState(false);
+  const [whiteTime, setWhiteTime] = useState<number>(0);
+  const [blackTime, setBlackTime] = useState<number>(0);
+  const [timeIncrement, setTimeIncrement] = useState<number>(0);
   const [searchParams] = useSearchParams();
   const gameId = searchParams.get("gameId");
   const socket = useOutletContext() as Socket;
@@ -79,10 +65,21 @@ const PlayGame = () => {
 
       if (!res) throw new Error("Something went wrong");
       const data = res.data as GameMetaData;
+      setOriginalGameData(data);
       console.log(data);
 
-      const isPlayer1 = data.p1 === username;
+      // Process game meta data
+      if (data.time) {
+        const timeAndIncrement = data.time.split("|");
+        const startingTime = parseInt(timeAndIncrement[0]) * 60 * 1000;
+        setWhiteTime(startingTime);
+        setBlackTime(startingTime);
+        setTimeIncrement(parseInt(timeAndIncrement[1]) * 1000);
+        setIsTimedGame(true);
+        console.log(timeAndIncrement);
+      }
 
+      const isPlayer1 = data.p1 === username;
       setOpponentName(isPlayer1 ? data.p2 : data.p1);
       setPlayerOrientation(
         (isPlayer1 ? data.color1 : data.color2) as BoardOrientation
@@ -128,6 +125,15 @@ const PlayGame = () => {
           setShowPopup(true);
         }
 
+        if (isTimedGame && activeColor === "white") {
+          console.log("white increments by", timeIncrement);
+          setWhiteTime((prevTime) => prevTime + timeIncrement);
+        }
+        if (isTimedGame && activeColor === "black") {
+          console.log("black increments by", timeIncrement);
+          setBlackTime((prevTime) => prevTime + timeIncrement);
+        }
+
         setActiveColor(updatedGameState.turn() === "w" ? "white" : "black");
         return updatedGameState.fen();
       });
@@ -138,7 +144,7 @@ const PlayGame = () => {
     return () => {
       socket.off("onUpdateGame", handleGameUpdate);
     };
-  }, []);
+  }, [activeColor, isTimedGame]);
 
   // Handle Rematch Messages
   useEffect(() => {
@@ -178,6 +184,7 @@ const PlayGame = () => {
     };
   }, [opponentName, showPopup, isActiveGame]);
 
+  // Used for cycling dots on end game screen
   useEffect(() => {
     if (!showPopup) return;
 
@@ -188,9 +195,15 @@ const PlayGame = () => {
     return () => clearInterval(interval);
   }, [showPopup]);
 
+  // Reset game for rematch
   useEffect(() => {
-    // Reset game for rematch
-    if (userWantsRematch && opponentWantsRematch) {
+    if (userWantsRematch && opponentWantsRematch && originalGameData) {
+      const timeAndIncrement = originalGameData.time?.split("|");
+      if (timeAndIncrement) {
+        const startingTime = parseInt(timeAndIncrement[0]) * 60 * 1000;
+        setWhiteTime(startingTime);
+        setBlackTime(startingTime);
+      }
       setUserWantsRematch(false);
       setOpponentWantsRematch(false);
       setPosition(DEFAULT_POSITION);
@@ -199,7 +212,7 @@ const PlayGame = () => {
       setShowPopup(false);
       setIsActiveGame(true);
     }
-  }, [userWantsRematch, opponentWantsRematch]);
+  }, [userWantsRematch, opponentWantsRematch, originalGameData]);
 
   const handleMoveDrop = (
     sourceSquare: string,
@@ -230,40 +243,77 @@ const PlayGame = () => {
     }
   };
 
+  // Handle timers
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (!isActiveGame || !isTimedGame) return;
+
+    timer = setInterval(() => {
+      if (activeColor === "white") {
+        setWhiteTime((prev) => {
+          if (prev <= 0) {
+            clearInterval(timer);
+            setIsActiveGame(false);
+            setEndGameMessage(
+              playerOrientation === "black"
+                ? "You WIN on time"
+                : "You LOSE on time"
+            );
+            setShowPopup(true);
+            return 0;
+          }
+          return prev - 100;
+        });
+      } else {
+        setBlackTime((prev) => {
+          if (prev <= 0) {
+            clearInterval(timer);
+            setIsActiveGame(false);
+            setEndGameMessage(
+              playerOrientation === "white"
+                ? "You WIN on time"
+                : "You LOSE on time"
+            );
+            setShowPopup(true);
+            return 0;
+          }
+          return prev - 100;
+        });
+      }
+    }, 100);
+
+    return () => clearInterval(timer);
+  }, [activeColor, isActiveGame, isTimedGame]);
+
   return (
     <div className="flex flex-col items-center container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-3xl font-bold text-center mb-6">
-        Playing Against {opponentName}
-        {/* <Button
-          onClick={() => {
-            console.log(position);
-          }}
-        >
-          Get Fen
-        </Button>
-        <Button
-          onClick={() => {
-            const game = new Chess(position);
-            console.log(game.moves());
-          }}
-        >
-          Get Moves
-        </Button> */}
-      </h1>
-
       <ChessboardWrapper>
+        <div className="flex justify-between">
+          <p>{opponentName}</p>
+          <p>
+            {isTimedGame && playerOrientation === "white"
+              ? formatTime(blackTime)
+              : formatTime(whiteTime)}
+          </p>
+        </div>
         <Chessboard
           id="NotationTrainer"
           position={position}
           showBoardNotation={true}
           boardOrientation={playerOrientation as BoardOrientation}
-          customBoardStyle={{
-            marginBottom: "20px",
-          }}
           arePiecesDraggable={isActiveGame && activeColor === playerOrientation}
           onPieceDrop={handleMoveDrop}
           customDndBackend={isMobile() ? TouchBackend : undefined}
         />
+        <div className="flex justify-between">
+          <p>{username}</p>
+          <p>
+            {isTimedGame && playerOrientation === "white"
+              ? formatTime(whiteTime)
+              : formatTime(blackTime)}
+          </p>
+        </div>
       </ChessboardWrapper>
 
       <AlertDialog open={showPopup} onOpenChange={setShowPopup}>

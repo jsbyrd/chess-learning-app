@@ -8,7 +8,9 @@ const ChessboardWrapper = ({
   className?: string;
 }) => {
   return (
-    <div className={`flex flex-shrink-0 ${chessboardWidth} ${className}`}>
+    <div
+      className={`flex flex-col flex-shrink-0 ${chessboardWidth} ${className}`}
+    >
       {children}
     </div>
   );

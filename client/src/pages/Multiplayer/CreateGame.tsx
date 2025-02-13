@@ -13,16 +13,20 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate, useOutletContext } from "react-router";
 import { Socket } from "socket.io-client";
 import { useUser } from "@/components/UserProvider/use-user-hook";
-
-type GameColor = "white" | "black" | "random";
-type OnCreateGameMessage = {
-  hasCreatedGame: boolean;
-  gameId: string;
-  msg: string | null;
-};
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { GameColor, OnCreateGameMessage } from "./types";
 
 const CreateGame = () => {
   const [colorPreference, setColorPreference] = useState<GameColor>("white");
+  const [timeControl, setTimeControl] = useState<string>("10|0");
   const { username } = useUser();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -53,14 +57,20 @@ const CreateGame = () => {
     };
   }, []);
 
-  const handleCreateGame = () => {
+  const handleCreateGame = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     let color = colorPreference;
     if (color === "random") {
       color = Math.random() < 0.5 ? "white" : "black";
     }
+    let time: string | null = timeControl;
+    if (time === "unlimited") {
+      time = null;
+    }
     socket.emit("createGame", {
       username: username,
       color: color,
+      time: time,
     });
   };
 
@@ -70,13 +80,51 @@ const CreateGame = () => {
         <CardHeader>
           <CardTitle className="text-2xl">Create Game</CardTitle>
           <CardDescription>
-            Enter your username below to login to your account
+            Select your desired game options and press the button below to
+            create your game
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
+          <form onSubmit={handleCreateGame} className="space-y-6">
+            <div>
+              <Label>Time Controls</Label>
+              <Select
+                value={timeControl}
+                onValueChange={(value) => {
+                  setTimeControl(value);
+                }}
+              >
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Select a time control" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>No Time Limit</SelectLabel>
+                    <SelectItem value="unlimited">Unlimited</SelectItem>
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Blitz</SelectLabel>
+                    <SelectItem value="1|0">1 | 0</SelectItem>
+                    <SelectItem value="1|1">1 | 1</SelectItem>
+                    <SelectItem value="3|0">3 | 0</SelectItem>
+                    <SelectItem value="3|2">3 | 2</SelectItem>
+                    <SelectItem value="5|0">5 | 0</SelectItem>
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Rapid</SelectLabel>
+                    <SelectItem value="10|0">10 | 0</SelectItem>
+                    <SelectItem value="10|5">10 | 5</SelectItem>
+                    <SelectItem value="15|10">15 | 10</SelectItem>
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Classical</SelectLabel>
+                    <SelectItem value="90|30">90 | 30</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex flex-col gap-3">
-              <p className="text-md">Choose your color:</p>
+              <Label>Choose Your Color</Label>
               <RadioGroup
                 defaultValue={colorPreference}
                 onValueChange={(value) => {
@@ -98,10 +146,11 @@ const CreateGame = () => {
                 </div>
               </RadioGroup>
             </div>
-            <Button onClick={handleCreateGame} className="w-full">
+
+            <Button type="submit" className="w-full">
               Create Game
             </Button>
-          </div>
+          </form>
         </CardContent>
       </Card>
     </div>

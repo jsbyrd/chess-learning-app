@@ -4,15 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useOutletContext, useSearchParams } from "react-router";
 import { Socket } from "socket.io-client";
-
-type GameMetaData = {
-  gameId: string;
-  numPlayers: number;
-  p1: string | null;
-  color1: string | null;
-  p2: string | null;
-  color2: string | null;
-};
+import { GameMetaData } from "./types";
 
 const WaitGame = () => {
   const [dots, setDots] = useState(0);
@@ -26,6 +18,7 @@ const WaitGame = () => {
     if (!gameId) {
       toast({
         title: "Error",
+        variant: "destructive",
         description:
           "Redirecting to Create Game since no valid gameId was included in the URL.",
       });
