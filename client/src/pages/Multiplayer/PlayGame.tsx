@@ -30,6 +30,7 @@ import {
   OnUpdateGameMessage,
 } from "./types";
 import { formatTime } from "@/lib/format-time";
+import { getTimerColor } from "@/lib/get-timer-color";
 
 const PlayGame = () => {
   // const { toast } = useToast();
@@ -58,6 +59,7 @@ const PlayGame = () => {
   const gameId = searchParams.get("gameId");
   const socket = useOutletContext() as Socket;
   const navigate = useNavigate();
+  const opponentColor = playerOrientation === "white" ? "black" : "white";
 
   const fetchGameMetaData = useCallback(async () => {
     try {
@@ -288,14 +290,20 @@ const PlayGame = () => {
 
   return (
     <div className="flex flex-col items-center container mx-auto px-4 py-8 max-w-3xl">
-      <ChessboardWrapper>
-        <div className="flex justify-between">
+      <ChessboardWrapper className="gap-2">
+        <div className="flex justify-between items-center">
           <p>{opponentName}</p>
-          <p>
+          <div
+            className={`px-2 py-1 rounded-sm ${getTimerColor(
+              opponentColor,
+              activeColor,
+              isTimedGame
+            )}`}
+          >
             {isTimedGame && playerOrientation === "white"
               ? formatTime(blackTime)
               : formatTime(whiteTime)}
-          </p>
+          </div>
         </div>
         <Chessboard
           id="NotationTrainer"
@@ -306,13 +314,19 @@ const PlayGame = () => {
           onPieceDrop={handleMoveDrop}
           customDndBackend={isMobile() ? TouchBackend : undefined}
         />
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center">
           <p>{username}</p>
-          <p>
+          <div
+            className={`px-2 py-1 rounded-sm ${getTimerColor(
+              playerOrientation,
+              activeColor,
+              isTimedGame
+            )}`}
+          >
             {isTimedGame && playerOrientation === "white"
               ? formatTime(whiteTime)
               : formatTime(blackTime)}
-          </p>
+          </div>
         </div>
       </ChessboardWrapper>
 
