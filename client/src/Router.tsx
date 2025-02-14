@@ -14,6 +14,7 @@ import CreateGame from "./pages/Multiplayer/CreateGame";
 import JoinGame from "./pages/Multiplayer/JoinGame";
 import WaitGame from "./pages/Multiplayer/WaitGame";
 import PlayGame from "./pages/Multiplayer/PlayGame";
+import ErrorPage from "./pages/Error/Error";
 
 function Router() {
   return (
@@ -46,6 +47,8 @@ function Router() {
         <Route path="/analysis" element={<Analysis />} />
         {/* History */}
         <Route path="/history/minigames" element={<MinigameHistory />} />
+        {/* Everything else is an error */}
+        <Route path="*" element={<ErrorPage />} />
       </Route>
     </Routes>
   );
