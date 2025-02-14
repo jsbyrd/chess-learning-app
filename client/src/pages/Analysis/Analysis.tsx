@@ -68,6 +68,7 @@ const Analysis = () => {
 
   return (
     <div className="h-full flex justify-around items-center flex-wrap items-start px-4 py-8">
+      FEATURE CURRENTLY IN DEVELOPMENT
       {/* Chessboard */}
       <ChessboardWrapper className="flex justify-center">
         <Chessboard
@@ -77,7 +78,6 @@ const Analysis = () => {
           customDndBackend={isMobile() ? TouchBackend : undefined}
         />
       </ChessboardWrapper>
-
       {/* Tools */}
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col justify-center gap-5 md:h-[80vh] rounded w-[350px]">

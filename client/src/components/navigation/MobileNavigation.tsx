@@ -46,7 +46,7 @@ const MobileNavigation = () => {
               </NavLink>
             </SheetClose>
             <Accordion type="single" collapsible>
-              <AccordionItem value="practice">
+              {/* <AccordionItem value="practice">
                 <AccordionTrigger>Study</AccordionTrigger>
                 <AccordionContent>
                   <div className="flex flex-col space-y-2">
@@ -67,7 +67,7 @@ const MobileNavigation = () => {
                     ))}
                   </div>
                 </AccordionContent>
-              </AccordionItem>
+              </AccordionItem> */}
               <AccordionItem value="games">
                 <AccordionTrigger>Play Games</AccordionTrigger>
                 <AccordionContent>
