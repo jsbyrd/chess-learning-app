@@ -1,8 +1,7 @@
 import { createContext } from "react";
 import { io, Socket } from "socket.io-client";
 
-// TODO: Replace base url with env variable
-export const socket = io("http://localhost:8080", {
+export const socket = io(import.meta.env.VITE_API_BASE_URL, {
   autoConnect: false,
 });
 export const WebsocketContext = createContext<Socket>(socket);
