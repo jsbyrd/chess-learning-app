@@ -36,7 +36,8 @@ export class GameGateway implements OnModuleInit, OnModuleDestroy {
 
   @SubscribeMessage('createGame')
   async handleCreateGame(
-    @MessageBody() data: { username: string; color: string },
+    @MessageBody()
+    data: { username: string; color: string; time: string | null },
     @ConnectedSocket() socket: Socket,
   ) {
     const response = await this.gameService.createGame(socket, data);

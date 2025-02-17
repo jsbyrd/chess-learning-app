@@ -34,6 +34,7 @@ export type OnRematchGame = {
 export type GameMetaData = {
   gameId: string;
   numPlayers: number;
+  time: string | null;
   p1: string | null;
   color1: string | null;
   p2: string | null;

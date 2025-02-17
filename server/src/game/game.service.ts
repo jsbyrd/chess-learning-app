@@ -46,7 +46,7 @@ export class GameService {
 
   async createGame(
     socket: Socket,
-    data: { username: string; color: string },
+    data: { username: string; color: string; time: string | null },
   ): Promise<OnCreateGameMessage> {
     const gameId = uuidv4();
     const channel = `game:${gameId}`;
@@ -54,6 +54,7 @@ export class GameService {
     const metaData: GameMetaData = {
       gameId,
       numPlayers: 1,
+      time: data.time,
       p1: data.username,
       color1: data.color,
       p2: null,
