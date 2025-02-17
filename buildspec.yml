@@ -1,0 +1,22 @@
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22
+    commands:
+      - echo Installing tools for build...
+      - npm i -g typescript
+      - npm i -g @nestjs/cli
+  build:
+    commands:
+      - echo Build started...
+      - cd server
+      - npm i
+      - npm run build
+  post_build:
+    commands:
+      - echo Build completed on `date`
+
+artifacts:
+  base-directory: "server"
+  files:
+    - "**/*"
