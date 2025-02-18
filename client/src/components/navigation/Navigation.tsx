@@ -1,6 +1,6 @@
 import { NavLink } from "react-router";
 import {
-  practiceNavComponent,
+  // practiceNavComponent,
   gameNavComponent,
   coordinatesNavComponent,
 } from "@/lib/navigation-components";

@@ -1,4 +1,3 @@
-import { FenProvider } from "@/components/FenProvider";
 import { useState } from "react";
 import SearchSquareGame, { SearchSquareGameProps } from "./SearchSquareGame";
 import SearchSquareInstructions, {

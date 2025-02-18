@@ -1,8 +1,7 @@
 import ChessboardWrapper from "@/components/ChessboardWrapper";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_POSITION } from "chess.js";
-import { Pen, Bot, Landmark } from "lucide-react";
-import { Suspense } from "react";
+import { Pen } from "lucide-react";
 import { Chessboard } from "react-chessboard";
 
 const Home = () => {

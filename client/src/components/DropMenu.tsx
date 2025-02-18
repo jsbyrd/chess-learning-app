@@ -13,9 +13,7 @@ import { Gamepad2, LogOut, Settings, Swords, User } from "lucide-react";
 import customAxios from "@/api/custom-axios";
 import { AxiosError } from "axios";
 import { toast } from "@/hooks/use-toast";
-import { Link, useNavigate } from "react-router";
-
-const ICON_SIZE = 16;
+import { useNavigate } from "react-router";
 
 const DropMenu = () => {
   const { username, handleLogout } = useUser();

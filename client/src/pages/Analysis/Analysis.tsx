@@ -1,24 +1,24 @@
 import ChessboardWrapper from "@/components/ChessboardWrapper";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { chessboardWidth } from "@/lib/common-values";
 import { isMobile } from "@/lib/is-mobile";
 import { isValidPgnFormat } from "@/lib/is-valid-pgn-format";
-import { Chess, DEFAULT_POSITION } from "chess.js";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { DEFAULT_POSITION } from "chess.js";
+import { ChangeEvent, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
-import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
+// import { BoardOrientation } from "react-chessboard/dist/chessboard/types";
 import { TouchBackend } from "react-dnd-touch-backend";
 
 // TODO: Finish later (IN PROGRESS)
 
 const Analysis = () => {
-  const [game, setGame] = useState(new Chess());
-  const [orientation, setOrientation] = useState<BoardOrientation>("white");
-  const [position, setPosition] = useState<string | undefined>(undefined);
+  // const [game, setGame] = useState(new Chess());
+  // const [orientation, setOrientation] = useState<BoardOrientation>("white");
+  const orientation = "white";
+  // const [position, setPosition] = useState<string | undefined>(undefined);
+  const position = undefined;
   const [pgnText, setPgnText] = useState("");
   const [isFileMode, setIsFileMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

@@ -15,7 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
-  practiceNavComponent,
+  // practiceNavComponent,
   gameNavComponent,
   coordinatesNavComponent,
 } from "@/lib/navigation-components";

@@ -1,7 +1,7 @@
 import ChessboardWrapper from "@/components/ChessboardWrapper";
 import { DEFAULT_POSITION } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { Pen, Bot, Square } from "lucide-react";
+import { Pen, Square } from "lucide-react";
 import { NavLink } from "react-router";
 
 const primaryButtonStyling: string =
