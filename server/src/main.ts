@@ -10,7 +10,7 @@ async function bootstrap() {
     exclude: [{ path: '/', method: RequestMethod.GET }],
   });
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: process.env.ALLOWED_ORIGIN_URL,
     credentials: true,
   });
   app.use(cookieParser());
